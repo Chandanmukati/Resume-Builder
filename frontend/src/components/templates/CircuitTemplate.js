@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ModernTemplate = ({ data }) => {
+const CircuitTemplate = ({ data }) => {
   const {
     personalInfo = {},
     experience   = [],
@@ -12,10 +12,10 @@ const ModernTemplate = ({ data }) => {
   const hasSkills = Object.values(skills).some(arr => arr && arr.length > 0);
 
   return (
-    <div className="template modern-template">
+    <div className="template circuit-template">
       
       {/* Header */}
-      <div className="modern-header">
+      <div className="circuit-header">
         <h1 className="t-name">{personalInfo.fullName || 'John Doe'}</h1>
         {data.targetRole && <div className="t-role">{data.targetRole}</div>}
         
@@ -42,7 +42,7 @@ const ModernTemplate = ({ data }) => {
       {/* Experience */}
       {experience && experience.length > 0 && (
         <div className="t-section">
-          <h2 className="t-section-title modern-title">Experience</h2>
+          <h2 className="t-section-title circuit-title">Experience</h2>
           
           {experience.map((exp, i) => (
             <div key={i} className="t-entry">
@@ -69,7 +69,7 @@ const ModernTemplate = ({ data }) => {
       {/* Projects */}
       {projects && projects.length > 0 && (
         <div className="t-section">
-          <h2 className="t-section-title modern-title">Projects</h2>
+          <h2 className="t-section-title circuit-title">Projects</h2>
           
           {projects.map((proj, i) => (
             <div key={i} className="t-entry">
@@ -95,7 +95,7 @@ const ModernTemplate = ({ data }) => {
       {/* Skills */}
       {hasSkills && (
         <div className="t-section">
-          <h2 className="t-section-title modern-title">Skills</h2>
+          <h2 className="t-section-title circuit-title">Skills</h2>
           
           <div className="t-skills-grid">
             {skills.technical && skills.technical.length > 0 && (
@@ -125,7 +125,7 @@ const ModernTemplate = ({ data }) => {
       {/* Education */}
       {education && education.length > 0 && (
         <div className="t-section">
-          <h2 className="t-section-title modern-title">Education</h2>
+          <h2 className="t-section-title circuit-title">Education</h2>
           
           {education.map((edu, i) => (
             <div key={i} className="t-entry">
@@ -149,4 +149,4 @@ const ModernTemplate = ({ data }) => {
   );
 };
 
-export default ModernTemplate;
+export default CircuitTemplate;

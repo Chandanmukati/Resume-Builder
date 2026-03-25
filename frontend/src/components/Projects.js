@@ -1,63 +1,69 @@
 // ============================================
-// PROJECTS FORM
-// Add technical or personal projects
+// PROJECTS FORM — UPDATED
+// Includes: name, date, tech stack, description,
+//           highlights (bullets), GitHub link
 // ============================================
 
 import React from 'react';
 import { useResume } from '../context/ResumeContext';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 
+const EMPTY = {
+  name: '',
+  date: '',
+  description: '',
+  technologies: [],
+  _rawTech: '',
+  link: '',
+  highlights: []
+};
+
 function Projects() {
   const { state, dispatch } = useResume();
 
-  const addProject = () => {
-    dispatch({
-      type: 'ADD_PROJECT',
-      payload: {
-        name: '',
-        description: '',
-        technologies: [],
-        link: '',
-        highlights: []
-      }
-    });
-  };
+  const add = () => dispatch({ type: 'ADD_PROJECT', payload: { ...EMPTY } });
 
-  const updateField = (index, field, value) => {
+  const update = (index, field, value) => {
     const updated = { ...state.projects[index], [field]: value };
     dispatch({ type: 'UPDATE_PROJECT', payload: { index, data: updated } });
   };
 
-  const removeProject = (index) => {
-    dispatch({ type: 'REMOVE_PROJECT', payload: index });
-  };
+  const remove = (index) => dispatch({ type: 'REMOVE_PROJECT', payload: index });
 
-  // Helper to handle comma-separated technologies
   const handleTechChange = (index, value) => {
-    // We store as array, but edit as string
     const techArray = value.split(',').map(t => t.trim()).filter(t => t);
-    
-    // Update the actual technologies array
-    updateField(index, 'technologies', techArray);
-    
-    // Also track the raw string value temporarily for the input field
-    // by storing it in a temporary property (this is a simple hack for React controlled inputs)
     const updated = { ...state.projects[index], _rawTech: value, technologies: techArray };
     dispatch({ type: 'UPDATE_PROJECT', payload: { index, data: updated } });
+  };
+
+  const addHighlight = (index) => {
+    const highlights = [...(state.projects[index].highlights || []), ''];
+    update(index, 'highlights', highlights);
+  };
+
+  const updateHighlight = (pIdx, hIdx, value) => {
+    const highlights = [...state.projects[pIdx].highlights];
+    highlights[hIdx] = value;
+    update(pIdx, 'highlights', highlights);
+  };
+
+  const removeHighlight = (pIdx, hIdx) => {
+    const highlights = state.projects[pIdx].highlights.filter((_, i) => i !== hIdx);
+    update(pIdx, 'highlights', highlights);
   };
 
   return (
     <div className="form-section">
       <div className="section-header">
         <h2 className="form-section-title">🚀 Projects</h2>
-        <button className="btn btn-secondary btn-sm" onClick={addProject}>
+        <button className="btn btn-secondary btn-sm" onClick={add}>
           <FaPlus /> Add Project
         </button>
       </div>
 
       {state.projects.length === 0 && (
         <div className="empty-state">
-          <p>No projects added yet. Including technical projects helps stand out!</p>
+          <p>Add technical or personal projects. Include GitHub links!</p>
         </div>
       )}
 
@@ -65,7 +71,7 @@ function Projects() {
         <div key={index} className="form-card">
           <div className="form-card-header">
             <h3>Project #{index + 1}</h3>
-            <button className="btn-icon danger" onClick={() => removeProject(index)}>
+            <button className="btn-icon danger" onClick={() => remove(index)}>
               <FaTrash />
             </button>
           </div>
@@ -75,39 +81,72 @@ function Projects() {
               <label>Project Name *</label>
               <input
                 type="text"
-                placeholder="E-commerce Platform"
+                placeholder="Event Management Website"
                 value={proj.name}
-                onChange={(e) => updateField(index, 'name', e.target.value)}
+                onChange={(e) => update(index, 'name', e.target.value)}
               />
             </div>
 
             <div className="form-group">
-              <label>Link (URL)</label>
+              <label>Date (e.g. Nov '25 or Apr '25)</label>
               <input
                 type="text"
-                placeholder="github.com/user/repo"
-                value={proj.link}
-                onChange={(e) => updateField(index, 'link', e.target.value)}
+                placeholder="Apr '25"
+                value={proj.date || ''}
+                onChange={(e) => update(index, 'date', e.target.value)}
               />
             </div>
-            
+
             <div className="form-group full-width">
-              <label>Technologies Used (comma separated)</label>
+              <label>Tech Stack (comma separated)</label>
               <input
                 type="text"
-                placeholder="React, Node.js, MongoDB"
+                placeholder="HTML, CSS, PHP, MySQL"
                 value={proj._rawTech !== undefined ? proj._rawTech : proj.technologies.join(', ')}
                 onChange={(e) => handleTechChange(index, e.target.value)}
               />
             </div>
 
             <div className="form-group full-width">
-              <label>Description</label>
+              <label>Description (will appear as bullet points in resume)</label>
               <textarea
                 rows="3"
-                placeholder="Describe the project, your role, and what you achieved..."
+                placeholder="Describe what the project does and your key contributions..."
                 value={proj.description}
-                onChange={(e) => updateField(index, 'description', e.target.value)}
+                onChange={(e) => update(index, 'description', e.target.value)}
+              />
+            </div>
+
+            <div className="form-group full-width">
+              <div className="label-with-action">
+                <label>Bullet Point Highlights</label>
+                <button className="btn btn-secondary btn-sm" onClick={() => addHighlight(index)}>
+                  <FaPlus /> Add Bullet
+                </button>
+              </div>
+              {(proj.highlights || []).map((h, hIdx) => (
+                <div key={hIdx} className="bullet-item" style={{ marginTop: '6px' }}>
+                  <span className="bullet-dot">•</span>
+                  <input
+                    type="text"
+                    value={h}
+                    placeholder="Built an intuitive admin panel..."
+                    onChange={(e) => updateHighlight(index, hIdx, e.target.value)}
+                  />
+                  <button className="btn-icon danger" onClick={() => removeHighlight(index, hIdx)}>
+                    <FaTrash />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="form-group full-width">
+              <label>GitHub Repository Link</label>
+              <input
+                type="url"
+                placeholder="https://github.com/Chandanmukati/Event-Management-Website"
+                value={proj.link}
+                onChange={(e) => update(index, 'link', e.target.value)}
               />
             </div>
           </div>

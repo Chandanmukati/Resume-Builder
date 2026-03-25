@@ -5,9 +5,9 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaRobot, FaFileAlt, FaPalette } from 'react-icons/fa';
+import { FaRobot, FaFileAlt, FaPalette, FaSun, FaMoon } from 'react-icons/fa';
 
-function Header() {
+function Header({ theme, toggleTheme }) {
   const location = useLocation();
   
   const isActive = (path) => location.pathname === path ? 'nav-link active' : 'nav-link';
@@ -28,6 +28,9 @@ function Header() {
           <Link to="/templates" className={isActive('/templates')}>
             <FaPalette /> Templates
           </Link>
+          <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle Theme">
+            {theme === 'dark' ? <FaSun /> : <FaMoon />}
+          </button>
         </nav>
       </div>
     </header>

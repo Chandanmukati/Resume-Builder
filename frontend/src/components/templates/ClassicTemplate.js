@@ -1,7 +1,13 @@
 import React from 'react';
 
 const ClassicTemplate = ({ data }) => {
-  const { personalInfo, experience, education, skills, projects } = data;
+  const {
+    personalInfo = {},
+    experience   = [],
+    education    = [],
+    skills       = { technical: [], soft: [], tools: [], languages: [] },
+    projects     = [],
+  } = data;
 
   const hasSkills = Object.values(skills).some(arr => arr && arr.length > 0);
 

@@ -1,61 +1,100 @@
 // ============================================
-// BUILDER PAGE
-// Split-pane layout: form on left, preview on right
+// BUILDER PAGE - UPDATED
+// Now includes: Training, Certificates, Reference Resume
 // ============================================
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useResume } from '../context/ResumeContext';
-import { saveResume, getATSScore } from '../services/api';
+import { saveResume } from '../services/api';
 
 // Form Sections
-import PersonalInfo from '../components/PersonalInfo';
-import Education    from '../components/Education';
-import Experience   from '../components/Experience';
-import Skills       from '../components/Skills';
-import Projects     from '../components/Projects';
+import PersonalInfo  from '../components/PersonalInfo';
+import Education     from '../components/Education';
+import Experience    from '../components/Experience';
+import Skills        from '../components/Skills';
+import Projects      from '../components/Projects';
+import Training      from '../components/Training';
+import Certificates  from '../components/Certificates';
 
 // AI Panels
-import AIChatbot  from '../components/AIChatbot';
-import ATSScore   from '../components/ATSScore';
-import JobMatcher from '../components/JobMatcher';
+import AIChatbot     from '../components/AIChatbot';
+import ATSScore      from '../components/ATSScore';
+import JobMatcher    from '../components/JobMatcher';
+import ReferenceResume from '../components/ReferenceResume';
 
 // Templates
-import ModernTemplate  from '../components/templates/ModernTemplate';
-import ClassicTemplate from '../components/templates/ClassicTemplate';
-import MinimalTemplate from '../components/templates/MinimalTemplate';
+import ModernTemplate    from '../components/templates/ModernTemplate';
+import ClassicTemplate   from '../components/templates/ClassicTemplate';
+import MinimalTemplate   from '../components/templates/MinimalTemplate';
+import ReferenceTemplate from '../components/templates/ReferenceTemplate';
+import StockholmTemplate from '../components/templates/StockholmTemplate';
+import ExecutiveTemplate from '../components/templates/ExecutiveTemplate';
+import ViennaTemplate    from '../components/templates/ViennaTemplate';
+import TechTemplate      from '../components/templates/TechTemplate';
+import DublinTemplate    from '../components/templates/DublinTemplate';
+import MadridTemplate    from '../components/templates/MadridTemplate';
+import AmsterdamTemplate from '../components/templates/AmsterdamTemplate';
+import HarvardTemplate   from '../components/templates/HarvardTemplate';
+import ExecutiveEdgeTemplate from '../components/templates/ExecutiveEdgeTemplate';
+import BoardRoomTemplate   from '../components/templates/BoardRoomTemplate';
+import PinnacleProTemplate from '../components/templates/PinnacleProTemplate';
+import NeuralTemplate      from '../components/templates/NeuralTemplate';
+import SyntaxTemplate      from '../components/templates/SyntaxTemplate';
+import CircuitTemplate     from '../components/templates/CircuitTemplate';
+import CanvasTemplate      from '../components/templates/CanvasTemplate';
+import VividTemplate       from '../components/templates/VividTemplate';
+import StandoutTemplate    from '../components/templates/StandoutTemplate';
 
 import {
   FaUser, FaGraduationCap, FaBriefcase, FaTools,
-  FaProjectDiagram, FaRobot, FaChartBar, FaBriefcase as FaJob,
-  FaDownload, FaSave, FaSpinner
+  FaProjectDiagram, FaRobot, FaChartBar, FaSearch,
+  FaImage, FaDownload, FaSave, FaSpinner, FaCertificate, FaChalkboardTeacher
 } from 'react-icons/fa';
 
-// ---- Section tabs configuration ----
 const SECTIONS = [
-  { id: 'personal',    label: 'Personal',   icon: <FaUser /> },
-  { id: 'experience',  label: 'Experience', icon: <FaBriefcase /> },
-  { id: 'education',   label: 'Education',  icon: <FaGraduationCap /> },
-  { id: 'skills',      label: 'Skills',     icon: <FaTools /> },
-  { id: 'projects',    label: 'Projects',   icon: <FaProjectDiagram /> },
+  { id: 'personal',      label: 'Personal',      icon: <FaUser /> },
+  { id: 'experience',    label: 'Experience',     icon: <FaBriefcase /> },
+  { id: 'training',      label: 'Training',       icon: <FaChalkboardTeacher /> },
+  { id: 'education',     label: 'Education',      icon: <FaGraduationCap /> },
+  { id: 'skills',        label: 'Skills',         icon: <FaTools /> },
+  { id: 'projects',      label: 'Projects',       icon: <FaProjectDiagram /> },
+  { id: 'certificates',  label: 'Certificates',   icon: <FaCertificate /> },
 ];
 
 const TEMPLATES = {
-  modern:  ModernTemplate,
-  classic: ClassicTemplate,
-  minimal: MinimalTemplate,
+  modern:    ModernTemplate,
+  classic:   ClassicTemplate,
+  minimal:   MinimalTemplate,
+  stockholm: StockholmTemplate,
+  executive: ExecutiveTemplate,
+  vienna:    ViennaTemplate,
+  tech:      TechTemplate,
+  dublin:    DublinTemplate,
+  madrid:    MadridTemplate,
+  amsterdam: AmsterdamTemplate,
+  harvard:   HarvardTemplate,
+  reference: ReferenceTemplate,
+  executiveEdge: ExecutiveEdgeTemplate,
+  boardRoom: BoardRoomTemplate,
+  pinnaclePro: PinnacleProTemplate,
+  neural:    NeuralTemplate,
+  syntax:    SyntaxTemplate,
+  circuit:   CircuitTemplate,
+  canvas:    CanvasTemplate,
+  vivid:     VividTemplate,
+  standout:  StandoutTemplate,
 };
 
 function Builder() {
   const { state, dispatch } = useResume();
   const [searchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState('personal');
-  const [activePanel, setActivePanel]     = useState(null); // 'chatbot' | 'ats' | 'jobmatch'
-  const [saving, setSaving] = useState(false);
+  const [activePanel, setActivePanel]     = useState(null);
+  const [saving, setSaving]   = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const previewRef = useRef(null);
 
-  // Apply template from URL if coming from Templates page
   useEffect(() => {
     const tmpl = searchParams.get('template');
     if (tmpl && TEMPLATES[tmpl]) {
@@ -63,7 +102,13 @@ function Builder() {
     }
   }, []);
 
-  // ---- PDF Download ----
+  // Auto-switch to reference template when image is uploaded
+  useEffect(() => {
+    if (state.referenceImage && state.template !== 'reference') {
+      dispatch({ type: 'SET_TEMPLATE', payload: 'reference' });
+    }
+  }, [state.referenceImage]);
+
   const handleDownload = () => {
     if (!previewRef.current) return;
     const opt = {
@@ -73,38 +118,34 @@ function Builder() {
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-    // Load html2pdf lazily
     import('html2pdf.js').then(({ default: html2pdf }) => {
       html2pdf().set(opt).from(previewRef.current).save();
     });
   };
 
-  // ---- Save to backend ----
   const handleSave = async () => {
     setSaving(true);
     try {
       await saveResume(state);
-      setSaveMsg('✅ Saved successfully!');
+      setSaveMsg('✅ Saved!');
       setTimeout(() => setSaveMsg(''), 3000);
-    } catch (err) {
-      setSaveMsg('❌ Save failed — is the backend running?');
+    } catch {
+      setSaveMsg('❌ Save failed');
       setTimeout(() => setSaveMsg(''), 4000);
     }
     setSaving(false);
   };
 
-  // ---- Toggle AI panel ----
   const togglePanel = (panel) => {
     setActivePanel(prev => prev === panel ? null : panel);
   };
 
-  // ---- Render active template ----
   const TemplateComponent = TEMPLATES[state.template] || ModernTemplate;
 
   return (
     <div className="builder-page">
 
-      {/* ========= LEFT: FORM PANEL ========= */}
+      {/* ═══ LEFT: FORM PANEL ═══ */}
       <div className="builder-form-panel">
 
         {/* Section Tabs */}
@@ -121,22 +162,33 @@ function Builder() {
           ))}
         </div>
 
-        {/* Active Form Section */}
+        {/* Form Content */}
         <div className="form-content">
-          {activeSection === 'personal'   && <PersonalInfo />}
-          {activeSection === 'experience' && <Experience   />}
-          {activeSection === 'education'  && <Education    />}
-          {activeSection === 'skills'     && <Skills       />}
-          {activeSection === 'projects'   && <Projects     />}
+          {activeSection === 'personal'     && <PersonalInfo />}
+          {activeSection === 'experience'   && <Experience />}
+          {activeSection === 'training'     && <Training />}
+          {activeSection === 'education'    && <Education />}
+          {activeSection === 'skills'       && <Skills />}
+          {activeSection === 'projects'     && <Projects />}
+          {activeSection === 'certificates' && <Certificates />}
         </div>
 
-        {/* AI Panels (shown below form when active) */}
-        {activePanel === 'chatbot'   && <AIChatbot  onClose={() => setActivePanel(null)} />}
-        {activePanel === 'ats'       && <ATSScore   onClose={() => setActivePanel(null)} />}
-        {activePanel === 'jobmatch'  && <JobMatcher />}
+        {/* AI / Feature Panels */}
+        {activePanel === 'chatbot'    && <AIChatbot    onClose={() => setActivePanel(null)} />}
+        {activePanel === 'ats'        && <ATSScore     onClose={() => setActivePanel(null)} />}
+        {activePanel === 'jobmatch'   && <JobMatcher />}
+        {activePanel === 'reference'  && <ReferenceResume onClose={() => setActivePanel(null)} />}
 
-        {/* AI Tools Bar */}
+        {/* Bottom Tools Bar */}
         <div className="ai-tools-bar">
+          <button
+            className={`btn btn-sm ${activePanel === 'reference' ? 'btn-ai' : 'btn-secondary'}`}
+            onClick={() => togglePanel('reference')}
+            title="Upload your existing resume as a reference"
+          >
+            <FaImage />
+            {state.referenceImage ? ' Reference ✓' : ' Reference'}
+          </button>
           <button
             className={`btn btn-sm ${activePanel === 'chatbot' ? 'btn-ai' : 'btn-secondary'}`}
             onClick={() => togglePanel('chatbot')}
@@ -153,12 +205,12 @@ function Builder() {
             className={`btn btn-sm ${activePanel === 'jobmatch' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => togglePanel('jobmatch')}
           >
-            <FaJob /> Job Match
+            <FaSearch /> Job Match
           </button>
         </div>
       </div>
 
-      {/* ========= RIGHT: PREVIEW PANEL ========= */}
+      {/* ═══ RIGHT: PREVIEW PANEL ═══ */}
       <div className="builder-preview-panel">
 
         {/* Toolbar */}
@@ -169,9 +221,37 @@ function Builder() {
               value={state.template}
               onChange={(e) => dispatch({ type: 'SET_TEMPLATE', payload: e.target.value })}
             >
-              <option value="modern">🔷 Modern</option>
-              <option value="classic">📄 Classic</option>
-              <option value="minimal">🌿 Minimal</option>
+              <optgroup label="Standard">
+                <option value="modern">🔷 Modern</option>
+                <option value="classic">📄 Classic</option>
+                <option value="minimal">🌿 Minimal</option>
+              </optgroup>
+              <optgroup label="Professional & Corporate">
+                <option value="executive">👔 Executive</option>
+                <option value="harvard">🏛 Harvard</option>
+                <option value="executiveEdge">🏢 Executive Edge</option>
+                <option value="boardRoom">📊 Board Room</option>
+                <option value="pinnaclePro">⭐ Pinnacle Pro</option>
+              </optgroup>
+              <optgroup label="Tech & Startup">
+                <option value="stockholm">🌃 Stockholm</option>
+                <option value="amsterdam">🌷 Amsterdam</option>
+                <option value="tech">💻 Tech Grid</option>
+                <option value="neural">🧠 Neural</option>
+                <option value="syntax">⌨️ Syntax</option>
+                <option value="circuit">⚡ Circuit</option>
+              </optgroup>
+              <optgroup label="Creative">
+                <option value="vienna">🎻 Vienna</option>
+                <option value="dublin">☘️ Dublin</option>
+                <option value="madrid">🎨 Madrid</option>
+                <option value="canvas">🎨 Canvas</option>
+                <option value="vivid">✨ Vivid</option>
+                <option value="standout">🌟 Standout</option>
+              </optgroup>
+              <optgroup label="Custom">
+                <option value="reference">📌 Reference Style</option>
+              </optgroup>
             </select>
           </div>
 
@@ -180,14 +260,14 @@ function Builder() {
               {saving ? <FaSpinner className="spin" /> : <FaSave />} Save
             </button>
             <button className="btn btn-primary btn-sm" onClick={handleDownload}>
-              <FaDownload /> Download PDF
+              <FaDownload /> PDF
             </button>
           </div>
         </div>
 
         {saveMsg && <div className="save-message">{saveMsg}</div>}
 
-        {/* Resume Preview */}
+        {/* Clean full-width resume preview — no side panels */}
         <div className="preview-container">
           <div className="resume-preview" ref={previewRef}>
             <TemplateComponent data={state} />
