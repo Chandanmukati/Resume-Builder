@@ -1,6 +1,6 @@
 // ============================================
-// APP COMPONENT
-// Main app with routing and context provider
+// AI RESUME BUILDER
+// Production Build Trigger v1.0.1
 // ============================================
 
 import React, { useState, useEffect } from 'react';
